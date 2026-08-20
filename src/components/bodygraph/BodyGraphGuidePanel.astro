@@ -15,9 +15,9 @@ interface ChartView {
   channels: unknown[];
   aboutDetails?: Record<string, AboutDetail>;
 }
-interface Props { properties: PropertyItem[]; chart?: ChartView; upgradeHref?: string }
+interface Props { properties: PropertyItem[]; chart?: ChartView; unlocked?: boolean; upgradeHref?: string }
 
-const { properties, chart, upgradeHref = "/#readings" } = Astro.props;
+const { properties, chart, unlocked = false, upgradeHref = "/#readings" } = Astro.props;
 const propertyValue = (label: string, fallback: string) => properties.find((item) => item.label === label)?.value || fallback;
 const energyType = chart?.type || propertyValue("Type", "Generator");
 const strategy = chart?.strategy || propertyValue("Strategy", "Wait to Respond");
@@ -152,12 +152,15 @@ const energyDetails = [
     paragraphs: [`Your inner authority is ${authority}. It is the chart's primary decision-making process and is more reliable than mental pros-and-cons alone.`, "Practice noticing how this authority communicates in smaller choices, where the signal is easier to observe."],
   },
 ].map((item) => {
-  const provider = providerSection(item.id);
+  const providerSections = chart?.aboutDetails?.[item.id]?.sections || [];
+  const visibleSections = unlocked ? providerSections : providerSections.slice(0, 1);
+  const provider = visibleSections[0];
   return provider ? {
     ...item,
     title: provider.title || item.title,
     paragraphs: provider.paragraphs.length ? provider.paragraphs : [provider.content].filter(Boolean),
-  } : item;
+    sections: visibleSections,
+  } : { ...item, sections: [] as ReadingSection[] };
 });
 ---
 
@@ -225,8 +228,13 @@ const energyDetails = [
         {energyDetails.map((item) => (
           <article data-energy-detail={item.id} hidden>
             <h2>{item.title}</h2>
-            {item.paragraphs.map((paragraph) => <p>{paragraph}</p>)}
-            <UnlockReadingCard upgradeHref={upgradeHref} />
+            {item.sections.length ? item.sections.map((section, sectionIndex) => (
+              <section class="hd-energy-reading-section">
+                {sectionIndex > 0 && section.title ? <h3>{section.title}</h3> : null}
+                {section.paragraphs.map((paragraph) => <p>{paragraph}</p>)}
+              </section>
+            )) : item.paragraphs.map((paragraph) => <p>{paragraph}</p>)}
+            {!unlocked && <UnlockReadingCard upgradeHref={upgradeHref} />}
           </article>
         ))}
       </div>

@@ -80,7 +80,11 @@ test("bodygraph result page exposes the Cobalt explorer workspace and interpreta
   assert.match(propertiesDrawer, /data-property-previous/);
   assert.match(propertiesDrawer, /data-property-next/);
   assert.match(propertiesDrawer, /<UnlockReadingCard upgradeHref={upgradeHref}/);
-  assert.match(result, /<BodyGraphGuidePanel properties={foundationalProperties} chart={chartView} upgradeHref=/);
+  assert.match(propertiesDrawer, /!unlocked && <UnlockReadingCard/);
+  assert.match(
+    result,
+    /<BodyGraphGuidePanel properties={foundationalProperties} chart={chartView} unlocked={hasFullReadingAccess} upgradeHref=/,
+  );
   assert.doesNotMatch(result, /<section class="hd-reading-section"/);
   const guide = read("src/components/bodygraph/BodyGraphGuidePanel.astro");
   assert.match(guide, /data-guide-tab="chart"/);
@@ -95,6 +99,7 @@ test("bodygraph result page exposes the Cobalt explorer workspace and interpreta
   assert.match(guide, /manifesting-generator/);
   assert.match(guide, /energyImageKey\[energyType\.toLowerCase\(\)\]/);
   assert.match(guide, /<UnlockReadingCard upgradeHref={upgradeHref}/);
+  assert.match(guide, /!unlocked && <UnlockReadingCard/);
   const unlockCard = read("src/components/bodygraph/UnlockReadingCard.astro");
   assert.match(unlockCard, /Unlock the Full Detailed Reading/);
   assert.match(unlockCard, /Upgrade Now/);
@@ -104,6 +109,23 @@ test("bodygraph result page exposes the Cobalt explorer workspace and interpreta
   assert.match(read("src/styles/hd-routes.css"), /\.hd-properties-drawer \{[\s\S]*width: 50vw/);
   assert.match(read("src/styles/hd-routes.css"), /\.hd-energy-visual \{[\s\S]*aspect-ratio: 1 \/ 1/);
   assert.doesNotMatch(read("src/styles/hd-routes.css"), /\.hd-guide-panel__viewport \{[^}]*overscroll-behavior:\s*contain/);
+});
+
+test("successful Stripe payment returns to and unlocks the linked saved chart", () => {
+  const checkout = read("src/pages/api/checkout/full-reading.ts");
+  const access = read("src/pages/api/checkout/reading-access.ts");
+  const result = read("src/pages/human-design/[slug].astro");
+  const orders = read("src/server/capabilities/vendor/astropages-capabilities/human-design-orders.ts");
+  assert.match(checkout, /successPath = order\.readingId/);
+  assert.match(checkout, /\/human-design\/\$\{encodeURIComponent\(order\.readingId\)\}/);
+  assert.match(orders, /hasPaidHumanDesignReadingAccess/);
+  assert.match(orders, /payment_status = 'paid'/);
+  assert.match(access, /getPaidHumanDesignReadingAccess/);
+  assert.match(access, /chartUrl: access \? `\/human-design\/\$\{encodeURIComponent\(readingId\)\}#bodygraph`/);
+  assert.match(result, /hasFullReadingAccess/);
+  assert.match(result, /unlocked=\{hasFullReadingAccess\}/);
+  assert.match(result, /session-status\?session_id=/);
+  assert.match(result, /window\.location\.replace\(`\/human-design\/\$\{encodeURIComponent\(slug\)\}#bodygraph`\)/);
 });
 
 test("homepage plate uses the static non-interactive production bodygraph canvas", () => {

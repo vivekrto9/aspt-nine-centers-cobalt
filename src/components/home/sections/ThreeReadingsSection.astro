@@ -85,6 +85,22 @@ const {
   </div>
 </dialog>
 
+<dialog class="checkout-dialog purchase-owned-dialog" data-purchase-owned-dialog aria-labelledby="purchase-owned-title">
+  <div class="checkout-shell">
+    <header class="checkout-header">
+      <p>Purchase confirmed</p>
+      <button type="button" class="checkout-close" data-purchase-owned-close aria-label="Close purchase information">×</button>
+    </header>
+    <div class="purchase-owned-body">
+      <p class="offer-kicker">Already unlocked</p>
+      <h2 id="purchase-owned-title">You already own this reading</h2>
+      <p>Your payment for this saved chart is confirmed. The complete Human Design response is available now, and you will not be charged again.</p>
+      <p class="purchase-owned-order" data-purchase-owned-order hidden></p>
+      <a class="checkout-submit purchase-owned-link" data-purchase-owned-link href="/human-design">Open my full reading →</a>
+    </div>
+  </div>
+</dialog>
+
 <aside class="checkout-return" data-checkout-return hidden role="status" aria-live="polite">
   <strong data-checkout-return-title></strong>
   <span data-checkout-return-copy></span>
@@ -98,6 +114,43 @@ const {
   const error = dialog?.querySelector<HTMLElement>("[data-checkout-error]");
   const submit = dialog?.querySelector<HTMLButtonElement>("[data-checkout-submit]");
   const returnNotice = document.querySelector<HTMLElement>("[data-checkout-return]");
+  const ownedDialog = document.querySelector<HTMLDialogElement>("[data-purchase-owned-dialog]");
+  const ownedLink = ownedDialog?.querySelector<HTMLAnchorElement>("[data-purchase-owned-link]");
+  const ownedOrder = ownedDialog?.querySelector<HTMLElement>("[data-purchase-owned-order]");
+
+  type PaidAccess = { paid: boolean; chartUrl?: string; orderNumber?: string };
+  let paidAccess: PaidAccess | null = null;
+
+  const showOwnedReading = (access: PaidAccess) => {
+    if (!access.paid || !access.chartUrl) return;
+    if (ownedLink) ownedLink.href = access.chartUrl;
+    if (ownedOrder) {
+      ownedOrder.textContent = access.orderNumber ? `Order ${access.orderNumber}` : "Payment confirmed";
+      ownedOrder.hidden = false;
+    }
+    ownedDialog?.showModal();
+  };
+
+  const readPaidAccess = async () => {
+    const readingId = window.localStorage.getItem("hd:last-reading-id") || "";
+    if (!/^hd_chart_[A-Za-z0-9]+$/.test(readingId)) return null;
+    try {
+      const response = await fetch(`/api/checkout/reading-access?reading_id=${encodeURIComponent(readingId)}`, { cache: "no-store" });
+      if (!response.ok) return null;
+      return await response.json() as PaidAccess;
+    } catch {
+      return null;
+    }
+  };
+
+  const refreshPurchaseState = async () => {
+    paidAccess = await readPaidAccess();
+    if (!paidAccess?.paid) return;
+    document.querySelectorAll<HTMLButtonElement>("[data-checkout-open]").forEach((trigger) => {
+      trigger.textContent = "View my full reading →";
+      trigger.dataset.purchaseState = "paid";
+    });
+  };
 
   const showError = (message = "") => {
     if (!error) return;
@@ -105,9 +158,17 @@ const {
     error.hidden = !message;
   };
 
-  document.querySelectorAll<HTMLElement>("[data-checkout-open]").forEach((trigger) => {
-    trigger.addEventListener("click", () => {
+  document.querySelectorAll<HTMLButtonElement>("[data-checkout-open]").forEach((trigger) => {
+    trigger.addEventListener("click", async () => {
       showError();
+      trigger.disabled = true;
+      paidAccess = paidAccess?.paid ? paidAccess : await readPaidAccess();
+      trigger.disabled = false;
+      if (paidAccess?.paid) {
+        showOwnedReading(paidAccess);
+        window.astroPagesTrack?.("owned_reading_opened", { offer: "full-reading", order_number: paidAccess.orderNumber });
+        return;
+      }
       window.astroPagesTrack?.("checkout_opened", { offer: "full-reading", amount: 99, currency: "USD" });
       dialog?.showModal();
       requestAnimationFrame(() => email?.focus());
@@ -117,6 +178,10 @@ const {
   dialog?.querySelector("[data-checkout-close]")?.addEventListener("click", () => dialog.close());
   dialog?.addEventListener("click", (event) => {
     if (event.target === dialog) dialog.close();
+  });
+  ownedDialog?.querySelector("[data-purchase-owned-close]")?.addEventListener("click", () => ownedDialog.close());
+  ownedDialog?.addEventListener("click", (event) => {
+    if (event.target === ownedDialog) ownedDialog.close();
   });
 
   form?.addEventListener("submit", async (event) => {
@@ -142,7 +207,15 @@ const {
           readingId: window.localStorage.getItem("hd:last-reading-id") || undefined,
         }),
       });
-      const payload = await response.json() as { url?: string; orderId?: string; message?: string };
+      const payload = await response.json() as { url?: string; orderId?: string; message?: string; alreadyPurchased?: boolean; chartUrl?: string; orderNumber?: string };
+
+      if (payload.alreadyPurchased && payload.chartUrl) {
+        paidAccess = { paid: true, chartUrl: payload.chartUrl, orderNumber: payload.orderNumber };
+        dialog?.close();
+        showOwnedReading(paidAccess);
+        void refreshPurchaseState();
+        return;
+      }
 
       if (!response.ok || !payload.url) {
         throw new Error(payload.message || "Checkout could not be opened. Please try again.");
@@ -203,6 +276,7 @@ const {
     }
   }
   returnNotice?.querySelector("[data-checkout-return-close]")?.addEventListener("click", () => { returnNotice.hidden = true; });
+  void refreshPurchaseState();
 </script>
 
 <style>
@@ -254,6 +328,11 @@ const {
   .checkout-submit:hover { background: #ff6b4a; color: #0a1030; }
   .checkout-submit:disabled { opacity: .58; cursor: wait; }
   .checkout-security { margin: 18px 0 0; text-align: center; }
+  .purchase-owned-body { padding: clamp(36px, 6vw, 64px) 30px 34px; }
+  .purchase-owned-body h2 { max-width: 520px; margin: 0 0 22px; font-family: var(--font-display); font-size: clamp(34px, 6vw, 52px); line-height: 1; letter-spacing: -.05em; }
+  .purchase-owned-body > p:not(.offer-kicker) { max-width: 520px; margin: 0; color: #565d77; font-size: 17px; line-height: 1.65; }
+  .purchase-owned-body .purchase-owned-order { margin-top: 22px; color: #0a1030; font-size: 10px; font-weight: 800; letter-spacing: .18em; text-transform: uppercase; }
+  .purchase-owned-link { display: grid; place-items: center; margin-top: 34px; text-decoration: none; background: #1230c8; color: #f5f1e8; }
 
   @media (max-width: 900px) {
     .readings-section { padding: 72px 18px 0; }

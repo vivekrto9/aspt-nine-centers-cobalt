@@ -48,11 +48,15 @@ test("Readings section provides one $99 offer and hands payment to Stripe Checko
   assert.equal(readings.includes("The full reading"), true);
   assert.equal(readings.includes("Unlock everything — $99"), true);
   assert.equal(readings.includes('fetch("/api/checkout/full-reading"'), true);
+  assert.equal(readings.includes("You already own this reading"), true);
+  assert.equal(readings.includes("/api/checkout/reading-access?reading_id="), true);
+  assert.equal(readings.includes("View my full reading →"), true);
   assert.equal(readings.includes("card number"), false);
   assert.equal(checkout.includes("https://api.stripe.com/v1/checkout/sessions"), true);
   assert.equal(checkout.includes('form.set("line_items[0][price_data][unit_amount]", "9900")'), true);
   assert.equal(checkout.includes('resolveSecretBinding(env, "STRIPE_SECRET_KEY")'), true);
   assert.equal(checkout.includes("createHumanDesignOrder"), true);
+  assert.equal(checkout.includes("alreadyPurchased: true"), true);
   assert.equal(webhook.includes('resolveSecretBinding(env, "STRIPE_WEBHOOK_SECRET")'), true);
   assert.equal(webhook.includes("verifyStripeSignature"), true);
   assert.equal(webhook.includes("checkout.session.completed"), true);

@@ -64,6 +64,22 @@ export const getHumanDesignOrderByCheckoutSession = async ({ env, sessionId }: {
     .bind(sessionId).first?.() as { order_number: string; payment_status: string; fulfillment_status: string } | null | undefined;
 };
 
+export const getPaidHumanDesignReadingAccess = async ({ env, readingId }: { env: RuntimeEnv; readingId: string }) => {
+  if (!env.DB || !/^hd_chart_[A-Za-z0-9]+$/.test(readingId)) return null;
+  try {
+    const row = await env.DB.prepare(`SELECT id, order_number FROM ${AP_TABLES.humanDesignOrders}
+      WHERE reading_id = ? AND payment_status = 'paid' ORDER BY paid_at DESC LIMIT 1`)
+      .bind(readingId).first?.() as { id?: string; order_number?: string } | null | undefined;
+    if (!row?.id) return null;
+    return { orderId: row.id, orderNumber: safeString(row.order_number) };
+  } catch {
+    return null;
+  }
+};
+
+export const hasPaidHumanDesignReadingAccess = async ({ env, readingId }: { env: RuntimeEnv; readingId: string }) =>
+  Boolean(await getPaidHumanDesignReadingAccess({ env, readingId }));
+
 export const failHumanDesignOrder = async ({ env, orderId }: { env: RuntimeEnv; orderId: string }) => {
   if (!env.DB) return;
   await env.DB.prepare(`UPDATE ${AP_TABLES.humanDesignOrders} SET payment_status = 'failed', updated_at = ? WHERE id = ? AND payment_status = 'pending'`)

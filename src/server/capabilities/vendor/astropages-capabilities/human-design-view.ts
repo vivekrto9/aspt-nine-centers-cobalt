@@ -239,6 +239,7 @@ export const normalizeHumanDesignView = (rawResult: unknown) => {
       name: displayText(item.name ?? item.title) || detail?.name || `Channel ${id}`,
       label: displayText(item.label ?? item.keyword ?? item.theme) || detail?.label || "",
       description: cleanText(item.description ?? item.meaning ?? item.interpretation) || detail?.description || `Channel ${id} is active in this chart.`,
+      paragraphs: detail?.paragraphs || [],
     };
   }).filter((entry) => entry.id && entry.natal === "active");
 

@@ -2,7 +2,7 @@ import type { APIRoute } from "astro";
 import { resolveSecretBinding } from "../../../server/aggregator/runtime-bindings.ts";
 import { getRuntimeEnv, readJsonBody, requirePost } from "../../../server/generated-site/request.ts";
 import { errorResponse } from "../../../server/generated-site/responses.ts";
-import { attachStripeCheckoutSession, createHumanDesignOrder, failHumanDesignOrder } from "../../../server/capabilities/vendor/astropages-capabilities/human-design-orders.ts";
+import { attachStripeCheckoutSession, createHumanDesignOrder, failHumanDesignOrder, getPaidHumanDesignReadingAccess } from "../../../server/capabilities/vendor/astropages-capabilities/human-design-orders.ts";
 
 const feature = "nine-centres.checkout.full-reading";
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -24,6 +24,19 @@ export const POST: APIRoute = async (context) => {
   }
 
   const env = await getRuntimeEnv(context);
+  const readingId = typeof parsed.body.readingId === "string" ? parsed.body.readingId.trim() : "";
+  if (readingId) {
+    const paidAccess = await getPaidHumanDesignReadingAccess({ env, readingId });
+    if (paidAccess) {
+      return Response.json({
+        ok: false,
+        alreadyPurchased: true,
+        message: "You already own the full reading for this chart.",
+        orderNumber: paidAccess.orderNumber,
+        chartUrl: `/human-design/${encodeURIComponent(readingId)}#bodygraph`,
+      }, { status: 409, headers: { "cache-control": "private, no-store" } });
+    }
+  }
   const stripeSecretKey = await resolveSecretBinding(env, "STRIPE_SECRET_KEY");
   if (!stripeSecretKey) {
     return errorResponse(feature, "Secure checkout is not configured yet.", 503);
@@ -33,7 +46,7 @@ export const POST: APIRoute = async (context) => {
     order = await createHumanDesignOrder({
       env,
       email,
-      readingId: parsed.body.readingId,
+      readingId,
       locale: context.request.headers.get("accept-language") || "en",
     });
   } catch (caught) {
@@ -57,7 +70,11 @@ export const POST: APIRoute = async (context) => {
   form.set("customer_email", email);
   form.set("customer_creation", "always");
   form.set("client_reference_id", order.id);
-  form.set("success_url", `${siteOrigin}/?checkout=success&session_id={CHECKOUT_SESSION_ID}#readings`);
+  const successPath = order.readingId
+    ? `/human-design/${encodeURIComponent(order.readingId)}`
+    : "/";
+  const successHash = order.readingId ? "#bodygraph" : "#readings";
+  form.set("success_url", `${siteOrigin}${successPath}?checkout=success&session_id={CHECKOUT_SESSION_ID}${successHash}`);
   form.set("cancel_url", `${siteOrigin}/?checkout=cancelled#readings`);
   form.set("line_items[0][price_data][currency]", "usd");
   form.set("line_items[0][price_data][unit_amount]", "9900");

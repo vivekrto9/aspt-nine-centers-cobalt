@@ -3,6 +3,7 @@ import { createHmac } from "node:crypto";
 import test from "node:test";
 import { historicalTimezoneOffset, normalizeHumanDesignInput } from "../../src/server/capabilities/vendor/astropages-capabilities/human-design-input.ts";
 import { normalizeHumanDesignView } from "../../src/server/capabilities/vendor/astropages-capabilities/human-design-view.ts";
+import { hasPaidHumanDesignReadingAccess } from "../../src/server/capabilities/vendor/astropages-capabilities/human-design-orders.ts";
 import { verifyStripeSignature } from "../../src/pages/api/checkout/stripe-webhook.ts";
 
 test("birth details resolve to provider coordinates and historical timezone offset", async () => {
@@ -73,6 +74,26 @@ test("object-valued AstrologyAPI fields and interpretation copy map into the sav
   assert.equal(view.channels[0].label, "Channel of Structuring");
   assert.equal(view.channels[0].description, "Provider channel copy.");
   assert.equal(view.planetDetails[0].description, "Provider planet copy.");
+});
+
+test("paid reading access is granted only by a paid order linked to the exact chart", async () => {
+  let boundReadingId = "";
+  const env = {
+    DB: {
+      prepare(sql) {
+        assert.match(sql, /reading_id = \? AND payment_status = 'paid'/);
+        return {
+          bind(readingId) {
+            boundReadingId = readingId;
+            return { first: async () => ({ id: "hd_order_paid" }) };
+          },
+        };
+      },
+    },
+  };
+  assert.equal(await hasPaidHumanDesignReadingAccess({ env, readingId: "hd_chart_abc123" }), true);
+  assert.equal(boundReadingId, "hd_chart_abc123");
+  assert.equal(await hasPaidHumanDesignReadingAccess({ env, readingId: "fixture" }), false);
 });
 
 test("Stripe webhook signatures are verified against the exact raw body", async () => {
