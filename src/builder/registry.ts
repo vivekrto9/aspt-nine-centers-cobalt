@@ -135,6 +135,7 @@ for (const field of Object.keys(getChromeDefaults("en"))) {
 export const builderSeoFields = seoFields;
 export const builderSeoFieldSet = new Set(seoFields);
 export const chromeTarget = { collection: "site_chrome", entry: "main" } as const;
+export const builderSeoTarget = { collection: "site_pages", entry: "home" } as const;
 
 const releaseTargets: BuilderReleaseTarget[] = [
   {

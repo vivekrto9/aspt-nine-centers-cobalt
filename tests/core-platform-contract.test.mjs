@@ -31,6 +31,7 @@ const baseTables = new Set([
   "ap_email_events",
   "ap_email_variable_mappings",
 ]);
+const runtimeTables = [...baseTables, "ap_human_design_readings", "ap_human_design_orders"];
 
 test("template manifest declares core platform metadata without generated-site admin", () => {
   const manifest = readJson("template.manifest.json");
@@ -43,7 +44,7 @@ test("template manifest declares core platform metadata without generated-site a
   assert.equal(manifest.secrets.valuesAllowedInSource, false);
   assert.equal(manifest.localization.requiredDefaultLocale, "en");
   assert.deepEqual(manifest.localization.availableLocaleCatalog, ["en", "hi", "ta", "te", "bn", "mr"]);
-  assert.deepEqual(manifest.runtimePersistence.tables, [...baseTables]);
+  assert.deepEqual(manifest.runtimePersistence.tables, runtimeTables);
   assert.equal(Object.hasOwn(manifest.runtime, "generatedSiteAdminPath"), false);
   assert.doesNotMatch(serialized, /\/astropages\/admin/);
 

@@ -107,6 +107,11 @@
       entry: toolbar.dataset.builderEntry || "",
       locale: toolbar.dataset.builderLocale || "en",
     });
+    const seoTarget = () => ({
+      collection: toolbar.dataset.builderSeoCollection || toolbar.dataset.builderCollection || "",
+      entry: toolbar.dataset.builderSeoEntry || toolbar.dataset.builderEntry || "",
+      locale: toolbar.dataset.builderLocale || "en",
+    });
     const targetKey = (target) => `${target.collection || ""}/${target.entry || ""}/${target.locale || "en"}`;
     const changeKey = (target, field) => `${targetKey(target)}::${field || ""}`;
     const elementTarget = (element) => ({
@@ -1047,11 +1052,11 @@
 
     inspector?.querySelectorAll("[data-builder-seo-field]").forEach((field) => {
       field.addEventListener("input", () => {
-        setPendingChange(field.dataset.builderSeoField, field.value || "");
+        setPendingChange(field.dataset.builderSeoField, field.value || "", seoTarget());
         updateSeoPreviews();
       });
       field.addEventListener("change", () => {
-        setPendingChange(field.dataset.builderSeoField, field.value || "");
+        setPendingChange(field.dataset.builderSeoField, field.value || "", seoTarget());
         updateSeoPreviews();
       });
     });

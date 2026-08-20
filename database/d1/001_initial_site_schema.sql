@@ -7,3 +7,7 @@
 -- - ap_business_settings
 -- - ap_admin_sessions
 -- - ap_admin_sso_exchanges
+-- Human Design generated readings are applied by migrations/0008_human_design_readings.sql:
+-- - ap_human_design_readings
+-- Human Design paid-reading orders are applied by migrations/0009_human_design_orders.sql:
+-- - ap_human_design_orders

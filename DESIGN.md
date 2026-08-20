@@ -10,7 +10,7 @@ The site currently has three visual layers:
 
 | Layer | Evidence | Role |
 | --- | --- | --- |
-| Neutral foundation | `src/styles/base.css`, `src/layouts/BaseLayout.astro` | Home, account routes, and 404 typography, color, containers, cards, buttons, and forms |
+| Neutral foundation | `src/styles/base.css`, `src/layouts/BaseLayout.astro` | Home and 404 typography, color, containers, cards, buttons, and forms |
 | Campaign exception | `src/styles/product-lead-demo.css`, `src/pages/lead-generation-demo.astro`, `src/data/product-lead-demo.ts` | Northstar sample product story and lead flow |
 | Builder overlay | `src/builder/BuilderStyles.astro`, `src/builder/BuilderToolbar.astro`, `src/builder/BuilderClient.astro` | Authenticated Content Studio launcher, menu, inspector, editing dock, selection, review, save, publish, and error feedback |
 
@@ -21,12 +21,8 @@ The family is not the Northstar brand. Northstar is sample content demonstrating
 | Source | Authority |
 | --- | --- |
 | `src/layouts/BaseLayout.astro` | Shared document shell, locale, metadata, generated settings, base stylesheet, and optional Builder toolbar |
-| `src/styles/base.css` | Shared visual tokens and selectors for home, auth, and 404 |
+| `src/styles/base.css` | Shared visual tokens and selectors for home and 404 |
 | `src/pages/index.astro` | Neutral home composition, navigation, feature cards, footer, logo fallback, and Builder mounting |
-| `src/pages/login.astro` | Login copy, form, pending text, API error text, and success redirect |
-| `src/pages/signup.astro` | Account-creation copy, fields, pending text, API error text, and login redirect |
-| `src/pages/forgot-password.astro` | Reset-request copy, pending/result feedback, and login return |
-| `src/pages/reset-password.astro` | New-password fields, mismatch error, pending/result feedback, and delayed login redirect |
 | `src/pages/404.astro` | Minimal centered not-found composition and source-default copy |
 | `src/pages/lead-generation-demo.astro` | Campaign sections, native dialog, lead form, share action, success state, and client interactions |
 | `src/styles/product-lead-demo.css` | Campaign tokens, image treatment, responsive composition, dialog, form states, and motion |
@@ -46,7 +42,7 @@ The family is not the Northstar brand. Northstar is sample content demonstrating
 
 Behavioral guardrails include `tests/smoke.test.mjs`, `tests/manifest.test.mjs`, `tests/generated-site/edit-access-stability.test.mjs`, `tests/generated-site/product-interest-lead.test.mjs`, `tests/project-assets-contract.test.mjs`, and `tests/project-assets-seed.test.mjs`. They verify route, Builder, lead, and asset contracts rather than visual appearance.
 
-Current route declarations are narrower than source: `template.manifest.json` lists `/`, `/login`, `/signup`, `/forgot-password`, and `/reset-password`, while `/lead-generation-demo` and `src/pages/404.astro` also render. Treat the files as current visual truth and the omission as an unresolved contract difference.
+The core route manifest declares `/`, `/human-design`, and `/human-design/[slug]`; `/blog`, `/blog/[slug]`, `/lead-generation-demo`, and `src/pages/404.astro` also render from source.
 
 ## Visual Foundations
 
@@ -54,7 +50,7 @@ The neutral palette in `src/styles/base.css` is anchored by `--color-bg: #fbf8f2
 
 `--font-serif` is Georgia with Times fallback; `--font-sans` is Inter followed by system UI. No remote font load is required. Serif belongs to dominant statements (`h1`, campaign headings); sans serif carries navigation, body copy, labels, status, and controls. Neutral `h1` uses `clamp(42px, 8vw, 84px)` with a tight `0.96` line-height. The campaign expands this to `clamp(64px, 10vw, 126px)` and introduces Iowan Old Style/Palatino fallbacks, negative tracking, and lighter weight.
 
-Shared content width is `min(1120px, calc(100% - 40px))`. Large vertical fields create calm: the neutral hero has a `520px` minimum height, auth pages fill the viewport, and feature cards use generous padding and minimum height. Corners are controlled rather than playful: neutral buttons, cards, panels, and inputs use `8px`; the campaign uses pill buttons and an unrounded editorial dialog.
+Shared content width is `min(1120px, calc(100% - 40px))`. Large vertical fields create calm: the neutral hero has a `520px` minimum height, and feature cards use generous padding and minimum height. Corners are controlled rather than playful: neutral buttons, cards, panels, and inputs use `8px`; the campaign uses pill buttons and an unrounded editorial dialog.
 
 The campaign replaces the neutral variables at `:root` with `#f2eee6`, `#171713`, amber `#d99a3e`, and near-black `#10100e`. The late `.product-demo` selectors in `src/styles/product-lead-demo.css` protect route art direction from shared `.button`, `.features`, and `main` rules. The hero CTA is a purposeful red exception (`#e3412f`) with a pulse, glow, arrow disc, hover lift, and explicit focus ring.
 
@@ -65,8 +61,6 @@ Builder visuals use their own `--builder-*` namespace. Peacock-teal surfaces (`-
 **Home `/`.** `src/pages/index.astro` follows header, hero, three-card feature grid, and footer. The header pairs a left brand with four right navigation links. The hero uses eyebrow, single dominant H1, supporting lead, then primary and secondary actions. Feature cards are peers, not competing calls to action. Home copy and chrome resolve through `loadPublicPageContent(Astro, "home")`; source fallbacks live in `src/data/public-copy.ts`.
 
 **Lead demo `/lead-generation-demo`.** The route is intentionally immersive: absolute overlay header; full-viewport photographic hero; numbered three-column highlights; asymmetrical product detail; dark centered closing CTA; shareable URL band; split footer; and modal enquiry. `bodyClass="product-demo"` scopes authoritative exceptions. Its `builderEdit` and `chromeEdit` functions currently return empty objects and no `builderToolbar` prop is passed, so its apparent editable markers are inert and its copy comes directly from `src/data/product-lead-demo.ts`.
-
-**Auth routes.** `/login`, `/signup`, `/forgot-password`, and `/reset-password` share `.auth-body`, `.auth-page`, `.auth-copy`, `.auth-panel`, and `.auth-form`. Desktop uses a wide editorial message beside a `320px` to `420px` panel. Each page changes only the task copy, fields, links, and script behavior. Copy is hard-coded in the route files, not sourced from Builder defaults.
 
 **404.** `src/pages/404.astro` reduces the family to eyebrow, H1, short explanation, and home action in `.not-found`, vertically centered over the full viewport. It calls `getHomeDefaults("en")` directly. Although `src/builder/registry.ts` defines `site_pages/not_found_page`, this page does not call `loadPublicPageContent` or mount the toolbar; the registry-to-render connection is therefore not established in current code.
 
@@ -80,15 +74,12 @@ Shared public patterns are structural rather than componentized:
 | --- | --- |
 | Brand/navigation | `.brand`, `.site-header`, `nav`; home requests `/_assets/aliases/logo/logo.svg` and reveals `.brand-fallback` on image error |
 | Editorial cue | `.eyebrow`; warm accent, compact bold text, with uppercase/tracking added only by the campaign |
-| Primary action | `.button.primary` or `.auth-form button`; filled accent, white text in the shared layer, stronger hover color |
+| Primary action | `.button.primary`; filled accent, white text in the shared layer, stronger hover color |
 | Secondary action | `.button.secondary`; bordered panel on neutral pages, translucent dark glass over campaign imagery |
 | Feature grouping | `.features`; three equal peers on desktop and one column on small screens |
-| Auth panel | `.auth-panel`, `.auth-form`; bordered white task surface, stacked labels, full-width controls, reserved status area |
 | Not-found action | `.not-found` plus shared `.button.primary`; no alternate navigation or decoration |
 
 Lead interactions in `src/pages/lead-generation-demo.astro` use `data-open-lead` and `data-close-lead` to open/close a native `<dialog>`, lock body scrolling, and focus the first input after 120ms. Backdrop click closes it. Submission runs native `reportValidity()`, disables `.form-submit`, reports “Sending your request…”, then either shows `.form-success` and a lead reference or writes an API message to `.form-status`. `[hidden]` is authoritative. The copy control reports success or fallback through `[data-copy-status]` and restores its label after 1.8 seconds.
-
-Auth scripts reserve `.auth-form__status` for pending, API result, and error text. Reset-password mismatch is handled before network submission. Current controls do not add a route-specific error border; text and native validity UI carry the error state.
 
 Builder state is attribute-driven. `[hidden]` controls menu, popover, inspector, dock, and empty sections, while panel closing waits for the approved exit motion. `data-state` distinguishes idle, unsaved, saving, publishing, draft, published, and error status pills. `data-builder-active`, `aria-expanded`, and `aria-selected` expose active launcher/tabs. Disabled save, review, and publish controls use a flat muted treatment and do not animate. In edit mode, `[data-builder-edit]` gets a text cursor; hover, selection, and `[data-builder-editing]` receive the builder accent outline and wash. Inline text and placeholder editing track changes live; Enter commits, Escape restores, and blur records a pending change. The launcher and “Done” share the same guarded close behavior, showing `Save this draft before closing edit mode.` as an inline warning when local edits remain. Saved-draft counts update from the diff endpoint without requiring a page refresh.
 

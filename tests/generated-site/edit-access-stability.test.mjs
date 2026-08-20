@@ -198,15 +198,18 @@ test("starter homepage mounts the Content Studio launcher when Builder auth is p
   assert.match(page, /hasSavedDraft: builderPage\.hasSavedDraft \|\| chromePage\.hasSavedDraft/);
 });
 
-test("localhost does not bypass Content Studio authentication", () => {
-  const auth = read("src/builder/auth.ts");
+test("local development exposes Content Studio without weakening production SSO", () => {
+  const source = read("src/builder/auth.ts");
 
-  assert.doesNotMatch(
-    auth,
-    /localBuilderAccess|localBuilderCookieName|base-template-local-builder|local-content-studio/,
+  assert.match(
+    source,
+    /const localBuilderAccess = \(\): BuilderAccessResult \| undefined => \{\s*if \(!isDevRuntime\(\)\) return undefined;/,
   );
-  assert.match(auth, /const session = await getAdminSession/);
-  assert.match(auth, /AstroPages SSO is required for Builder access\./);
+  assert.match(source, /subject: "local-content-studio"/);
+  assert.doesNotMatch(source, /localBuilderCookieName/);
+  assert.match(source, /const localAuth = localBuilderAccess\(\)/);
+  assert.match(source, /const session = await getAdminSession/);
+  assert.match(source, /evaluateBuilderAccess\(/);
 });
 
 test("Content Studio editor endpoints request EmDash preview runtime", () => {

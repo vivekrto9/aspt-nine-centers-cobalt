@@ -10,6 +10,7 @@
     "product_order": ["orderNumber", "productSlug", "productTitle", "amountCents", "currency", "city", "pincode"],
     "puja_order": ["orderNumber", "pujaSlug", "pujaTitle", "ritualSite", "gotra", "amountCents", "currency"],
     "report_order": ["orderNumber", "reportSlug", "reportTitle", "astrologerSlug", "amountCents", "currency", "birthDate", "birthTime", "birthPlace", "partnerName", "partnerBirthDate", "partnerBirthTime", "partnerBirthPlace"],
+    "human_design_chart": ["readingId", "chartType"],
     "newsletter": [],
     "support": ["topic", "message", "subject", "bookingId", "orderType", "orderId"]
   }

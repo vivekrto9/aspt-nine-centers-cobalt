@@ -8,8 +8,8 @@ const leadsManifest = JSON.parse(readFileSync(new URL("../astropages/leads.manif
 const routePaths = (items) => new Set(items.map((item) => item.path));
 
 test("template manifest keeps base starter identity", () => {
-  assert.equal(manifest.templateKey, "astropages-base-template");
-  assert.equal(manifest.displayName, "AstroPages Base Template");
+  assert.equal(manifest.templateKey, "aspt-nine-centers-cobalt");
+  assert.equal(manifest.displayName, "Nine Centres Cobalt");
   assert.equal(Object.hasOwn(manifest, "version"), false);
   assert.equal(Object.hasOwn(manifest, "registryVersionId"), false);
   assert.equal(Object.hasOwn(manifest, "analytics"), false);
@@ -19,8 +19,11 @@ test("template manifest keeps base starter identity", () => {
 
 test("manifest declares reusable generated-site APIs and neutral visitor routes", () => {
   const visitorRoutes = routePaths(manifest.routes.visitorRoutes);
-  for (const path of ["/", "/login", "/signup", "/forgot-password", "/reset-password"]) {
+  for (const path of ["/", "/human-design", "/human-design/[slug]"]) {
     assert.equal(visitorRoutes.has(path), true, `${path} visitor route must be declared`);
+  }
+  for (const path of ["/compatibility", "/compatibility/[slug]", "/transit", "/login", "/signup", "/forgot-password", "/reset-password"]) {
+    assert.equal(visitorRoutes.has(path), false, `${path} visitor route must be removed`);
   }
 
   const apiRoutes = routePaths(manifest.routes.generatedSiteApis);
@@ -79,6 +82,8 @@ test("manifest declares reusable runtime persistence tables", () => {
     "ap_email_templates",
     "ap_email_events",
     "ap_email_variable_mappings",
+    "ap_human_design_readings",
+    "ap_human_design_orders",
   ]) {
     assert.equal(manifest.runtimePersistence.tables.includes(table), true, `${table} must be declared`);
   }
@@ -95,6 +100,7 @@ test("leads manifest exposes the canonical reusable sources", () => {
     "product_order",
     "puja_order",
     "report_order",
+    "human_design_chart",
     "newsletter",
     "support",
   ]);

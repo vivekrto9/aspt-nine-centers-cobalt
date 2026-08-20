@@ -2,10 +2,6 @@ import { activeLocales, localizePath } from "../../data/localization-contract.ts
 
 const PUBLIC_ROUTES = [
   "/",
-  "/login",
-  "/signup",
-  "/forgot-password",
-  "/reset-password",
 ] as const;
 
 const ROBOTS_DISALLOW = [

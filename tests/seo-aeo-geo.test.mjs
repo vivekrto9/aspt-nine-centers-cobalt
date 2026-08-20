@@ -105,7 +105,7 @@ test("public discovery routes use the canonical domain and neutral site content"
   assert.equal(canonicalOrigin, "https://example.com");
   assert.equal(resolveSeoOrigin("https://preview.example.workers.dev", "not a url"), "https://preview.example.workers.dev");
   assert.match(sitemap, /<loc>https:\/\/example\.com\/<\/loc>/);
-  assert.match(sitemap, /<loc>https:\/\/example\.com\/login<\/loc>/);
+  assert.doesNotMatch(sitemap, /<loc>https:\/\/example\.com\/(?:login|signup|forgot-password|reset-password)<\/loc>/);
   assert.doesNotMatch(sitemap, /preview\.example\.workers\.dev/);
   assert.match(robots, /Disallow: \/_emdash/);
   assert.match(robots, /Sitemap: https:\/\/example\.com\/sitemap\.xml/);

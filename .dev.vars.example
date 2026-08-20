@@ -3,6 +3,19 @@
 EMDASH_ENCRYPTION_KEY=replace-with-local-development-key
 BUILDER_MCP_TOKEN=ec_pat_replace-with-builder-mcp-token
 BUILDER_MCP_PROVISION_SECRET=replace-with-builder-mcp-provision-secret
+ASTROLOGYAPI_USER_ID=replace-with-astrologyapi-user-id
+ASTROLOGYAPI_PASSWORD=replace-with-astrologyapi-password
+ASTROPAGES_PLATFORM_GOOGLE_PLACES_API_KEY=replace-with-google-places-api-key
+STRIPE_SECRET_KEY=sk_test_replace-with-stripe-secret-key
+STRIPE_WEBHOOK_SECRET=whsec_replace-with-stripe-webhook-secret
+SITE_ORIGIN=http://localhost:4321
+SES_SENDER_EMAIL=verified-sender@example.com
+SES_SENDER_NAME=Nine Centres
+AWS_REGION=us-east-1
+AWS_ACCESS_KEY_ID=replace-with-aws-access-key-id
+AWS_SECRET_ACCESS_KEY=replace-with-aws-secret-access-key
+POSTHOG_PROJECT_API_KEY=phc_replace-with-posthog-project-key
+POSTHOG_HOST=https://us.i.posthog.com
 
 # Generated-site SSO/runtime plumbing used by content studio integrations.
 ASTROPAGES_PROJECT_ID=replace-with-project-id

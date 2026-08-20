@@ -26,10 +26,24 @@ export type BuilderAccess = BuilderAccessResult;
 
 const allowedRoles = new Set<BuilderRole>(["owner", "admin", "editor"]);
 const publisherRoles = new Set<BuilderRole>(["owner", "admin"]);
-export const builderCsrfToken = "base-template-builder";
+export const builderCsrfToken = "aspt-nine-centers-cobalt-builder";
+const isDevRuntime = () =>
+  Boolean((import.meta as unknown as { env?: { DEV?: boolean } }).env?.DEV);
 
 const error = (message: string, status: 401 | 403) =>
   new Response(message, { status });
+
+const localBuilderAccess = (): BuilderAccessResult | undefined => {
+  if (!isDevRuntime()) return undefined;
+
+  return {
+    ok: true,
+    subject: "local-content-studio",
+    role: "owner",
+    csrfToken: builderCsrfToken,
+    canPublish: true,
+  };
+};
 
 const resolveHeaderSubjectAndRole = (request: Request) => ({
   subject:
@@ -107,6 +121,9 @@ export function requireBuilderAccess(
   const hasEnv = requestOrOptions instanceof Request;
   const request = hasEnv ? requestOrOptions : envOrRequest as Request;
   const options = hasEnv ? maybeOptions : requestOrOptions as BuilderAccessOptions | undefined;
+
+  const localAuth = localBuilderAccess();
+  if (localAuth) return localAuth;
 
   const headerAuth = resolveHeaderSubjectAndRole(request);
   if (headerAuth.subject || !hasEnv) {

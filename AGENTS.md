@@ -65,7 +65,7 @@ Never use raw R2 operations, bucket names, storage keys, or signed URLs, and nev
 
 ## Code, Data, And Safety Boundaries
 
-- Public routes are under `src/pages/`; the current visitor routes are `/`, `/login`, `/signup`, `/forgot-password`, and `/reset-password`.
+- Public routes are under `src/pages/`; the declared core visitor routes are `/`, `/human-design`, and `/human-design/[slug]`.
 - Builder ownership is defined by `src/builder/registry.ts`; public content is loaded through `src/builder/public-page.ts`.
 - Generated-site APIs and lifecycle code live in `src/server/generated-site/` and `src/pages/api/astropages/generated-site/`.
 - Runtime business services live in `src/server/aggregator/`; durable D1 changes use the next numbered forward-only file in `migrations/`.

@@ -1,7 +1,7 @@
 ---
 import BuilderClient from "./BuilderClient.astro";
 import BuilderStyles from "./BuilderStyles.astro";
-import { builderSeoFields } from "./registry.ts";
+import { builderSeoFields, builderSeoTarget } from "./registry.ts";
 
 type Props = {
   launcherEnabled: boolean;
@@ -16,6 +16,8 @@ type Props = {
   seo?: Record<string, string | undefined>;
   hasSavedDraft?: boolean;
   reviewTargets?: Array<{ collection: string; entry: string; locale: string }>;
+  seoTarget?: { collection: string; entry: string } | null;
+  seoEditable?: boolean;
 };
 
 const {
@@ -31,7 +33,10 @@ const {
   seo = {},
   hasSavedDraft = false,
   reviewTargets = [],
+  seoTarget,
+  seoEditable = seoTarget !== null,
 } = Astro.props;
+const resolvedSeoTarget = seoTarget || (seoEditable ? builderSeoTarget : { collection: "", entry: "" });
 
 const value = (field: string) => seo[field] ?? "";
 const fieldLabel = (field: string) =>
@@ -58,6 +63,8 @@ const advancedFields = builderSeoFields.filter((field) => !searchFields.includes
         data-builder-collection={collection}
         data-builder-entry={entry}
         data-builder-locale={locale}
+        data-builder-seo-collection={resolvedSeoTarget.collection}
+        data-builder-seo-entry={resolvedSeoTarget.entry}
         data-builder-endpoint={endpoint}
         data-builder-diff-endpoint={diffEndpoint}
         data-builder-csrf={csrfToken}
@@ -108,7 +115,7 @@ const advancedFields = builderSeoFields.filter((field) => !searchFields.includes
             </label>
           </div>
           <div class="builder-menu-actions">
-            <button class="builder-action builder-secondary-button" type="button" data-builder-seo-toggle>Page SEO</button>
+            {seoEditable ? <button class="builder-action builder-secondary-button" type="button" data-builder-seo-toggle>Page SEO</button> : null}
             <button class="builder-action builder-secondary-button" type="button" data-builder-review-toggle disabled={!hasSavedDraft}>Review changes</button>
             <button class="builder-action builder-secondary-button" type="button" data-builder-preview-toggle>Preview site</button>
           </div>
@@ -160,7 +167,7 @@ const advancedFields = builderSeoFields.filter((field) => !searchFields.includes
             </div>
             <div class="builder-inspector-tabs" role="tablist" aria-label="Content Studio inspector tabs">
               <button type="button" data-builder-tab="field" role="tab">Content</button>
-              <button type="button" data-builder-tab="seo" role="tab" data-builder-active>Page SEO</button>
+              {seoEditable ? <button type="button" data-builder-tab="seo" role="tab" data-builder-active>Page SEO</button> : null}
               <button type="button" data-builder-tab="changes" role="tab">Changes</button>
             </div>
             <section class="builder-inspector-panel" data-builder-panel="field" hidden>
@@ -187,13 +194,13 @@ const advancedFields = builderSeoFields.filter((field) => !searchFields.includes
                 <h3>Content</h3>
                 <div data-builder-content-change-list></div>
               </div>
-              <div class="builder-changes-section" data-builder-seo-changes hidden>
+              {seoEditable ? <div class="builder-changes-section" data-builder-seo-changes hidden>
                 <h3>Page SEO</h3>
                 <div data-builder-seo-change-list></div>
-              </div>
+              </div> : null}
               <div class="builder-empty-state" data-builder-no-changes hidden>No unpublished changes for this locale.</div>
             </section>
-            <section class="builder-inspector-panel" data-builder-panel="seo">
+            {seoEditable ? <section class="builder-inspector-panel" data-builder-panel="seo">
               <div class="builder-preview-card">
                 <span>Search preview</span>
                 <strong data-builder-search-title>{value("seo_title") || "Base Template"}</strong>
@@ -284,7 +291,7 @@ const advancedFields = builderSeoFields.filter((field) => !searchFields.includes
               </fieldset>
                 )}
               </div>
-            </section>
+            </section> : null}
           </aside>
         </>
       ) : null}

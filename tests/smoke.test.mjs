@@ -6,10 +6,10 @@ const root = new URL("../", import.meta.url);
 const read = (path) => readFileSync(new URL(path, root), "utf8");
 const readJson = (path) => JSON.parse(read(path));
 
-test("base template exposes a minimal generic manifest", () => {
+test("Nine Centres template declares its supported visitor journeys", () => {
   const manifest = readJson("template.manifest.json");
-  assert.equal(manifest.templateKey, "astropages-base-template");
-  assert.equal(manifest.displayName, "AstroPages Base Template");
+  assert.equal(manifest.templateKey, "aspt-nine-centers-cobalt");
+  assert.equal(manifest.displayName, "Nine Centres Cobalt");
   assert.deepEqual(manifest.supportedCapabilities, [
     "capability-content-seo-localization@0.3.0",
     "capability-generated-site-operations@0.3.0",
@@ -18,10 +18,8 @@ test("base template exposes a minimal generic manifest", () => {
   ]);
   assert.deepEqual(manifest.routes.visitorRoutes.map((route) => route.path), [
     "/",
-    "/login",
-    "/signup",
-    "/forgot-password",
-    "/reset-password",
+    "/human-design",
+    "/human-design/[slug]",
   ]);
 });
 
@@ -63,12 +61,16 @@ test("analytics MCP hook is present without project-specific analytics tables", 
   assert.doesNotMatch(query, /ap_report_orders|ap_puja_orders|ap_product_orders|ap_consultation_bookings|ap_bookings/);
 });
 
-test("customer auth pages and APIs are present", () => {
+test("customer auth APIs remain available without public auth pages", () => {
   for (const path of [
     "src/pages/login.astro",
     "src/pages/signup.astro",
     "src/pages/forgot-password.astro",
     "src/pages/reset-password.astro",
+  ]) {
+    assert.equal(existsSync(new URL(path, root)), false, `${path} should be removed`);
+  }
+  for (const path of [
     "src/pages/api/astropages/generated-site/customer-auth/login.ts",
     "src/pages/api/astropages/generated-site/customer-auth/signup.ts",
     "src/pages/api/astropages/generated-site/customer-auth/request-password-reset.ts",

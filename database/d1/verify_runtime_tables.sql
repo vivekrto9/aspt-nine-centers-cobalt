@@ -16,7 +16,9 @@ WITH required_tables(name) AS (
     ('ap_leads'),
     ('ap_email_templates'),
     ('ap_email_events'),
-    ('ap_email_variable_mappings')
+    ('ap_email_variable_mappings'),
+    ('ap_human_design_readings'),
+    ('ap_human_design_orders')
 )
 SELECT name
 FROM required_tables

@@ -1,8 +1,8 @@
 {
-  "templateKey": "astropages-base-template",
-  "displayName": "AstroPages Base Template",
+  "templateKey": "aspt-nine-centers-cobalt",
+  "displayName": "Nine Centres Cobalt",
   "repo": {
-    "url": "https://github.com/vivekrto9/base-template.git",
+    "url": "https://github.com/vivekrto9/aspt-nine-centers-cobalt.git",
     "commitSha": "RESOLVED_AT_TEMPLATE_REGISTRATION"
   },
   "stage": "starter-template",
@@ -145,7 +145,11 @@
       "POSTHOG_PROJECT_API_KEY",
       "POSTHOG_HOST",
       "POSTHOG_PROJECT_ID",
-      "POSTHOG_PERSONAL_API_KEY"
+      "POSTHOG_PERSONAL_API_KEY",
+      "STRIPE_SECRET_KEY",
+      "STRIPE_WEBHOOK_SECRET",
+      "ASTROLOGYAPI_USER_ID",
+      "ASTROLOGYAPI_PASSWORD"
     ]
   },
   "localization": {
@@ -218,27 +222,15 @@
       },
       {
         "method": "GET",
-        "path": "/login",
+        "path": "/human-design",
         "status": "implemented",
-        "capabilityKey": "customer-auth"
+        "capabilityKey": "content-seo-localization"
       },
       {
         "method": "GET",
-        "path": "/signup",
+        "path": "/human-design/[slug]",
         "status": "implemented",
-        "capabilityKey": "customer-auth"
-      },
-      {
-        "method": "GET",
-        "path": "/forgot-password",
-        "status": "implemented",
-        "capabilityKey": "customer-auth"
-      },
-      {
-        "method": "GET",
-        "path": "/reset-password",
-        "status": "implemented",
-        "capabilityKey": "customer-auth"
+        "capabilityKey": "content-seo-localization"
       }
     ],
     "generatedSiteApis": [
@@ -425,6 +417,48 @@
         "status": "implemented",
         "capabilityKey": "transactional-notifications",
         "capabilityFacet": "email-templates"
+      },
+      {
+        "method": "GET/POST",
+        "path": "/api/astropages/generated-site/human-design",
+        "status": "implemented",
+        "capabilityKey": "generated-site-operations"
+      },
+      {
+        "method": "GET",
+        "path": "/api/astropages/generated-site/places/autocomplete",
+        "status": "implemented",
+        "capabilityKey": "content-seo-localization"
+      },
+      {
+        "method": "GET",
+        "path": "/api/astropages/generated-site/places/details",
+        "status": "implemented",
+        "capabilityKey": "content-seo-localization"
+      },
+      {
+        "method": "GET",
+        "path": "/api/astropages/generated-site/places/timezone",
+        "status": "implemented",
+        "capabilityKey": "content-seo-localization"
+      },
+      {
+        "method": "POST",
+        "path": "/api/checkout/full-reading",
+        "status": "implemented",
+        "capabilityKey": "generated-site-operations"
+      },
+      {
+        "method": "POST",
+        "path": "/api/checkout/stripe-webhook",
+        "status": "implemented",
+        "capabilityKey": "generated-site-operations"
+      },
+      {
+        "method": "GET",
+        "path": "/api/checkout/session-status",
+        "status": "implemented",
+        "capabilityKey": "generated-site-operations"
       }
     ]
   },
@@ -484,7 +518,9 @@
       "ap_leads",
       "ap_email_templates",
       "ap_email_events",
-      "ap_email_variable_mappings"
+      "ap_email_variable_mappings",
+      "ap_human_design_readings",
+      "ap_human_design_orders"
     ]
   }
 }
